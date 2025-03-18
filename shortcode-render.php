@@ -8,7 +8,8 @@ function top10_brokers_render_table($atts) {
         'limit' => '',
         'rating_field' => '',
         'button_text' => '',
-        'cache' => 'yes' // New attribute to control caching
+        'cache' => 'yes',
+        'use_random_rating' => ''
     ), $atts, 'top10_brokers_table');
 
     // Get options from settings
@@ -32,6 +33,7 @@ function top10_brokers_render_table($atts) {
     $rating_field = !empty($atts['rating_field']) ? sanitize_text_field($atts['rating_field']) : (isset($options['top10_brokers_rating_field']) ? $options['top10_brokers_rating_field'] : 'rating_meta_key');
     $button_text = !empty($atts['button_text']) ? sanitize_text_field($atts['button_text']) : (isset($options['top10_brokers_button_text']) ? $options['top10_brokers_button_text'] : __('Learn More', 'top10-brokers'));
     $use_cache = ($atts['cache'] === 'yes');
+    $use_random_rating = !empty($atts['use_random_rating']) ? $atts['use_random_rating'] : (isset($options['top10_brokers_use_random_rating']) ? $options['top10_brokers_use_random_rating'] : 'no');
 
     // Debug log the parameters
     error_log('Rendering table with parameters: ' . print_r(array(
@@ -49,7 +51,8 @@ function top10_brokers_render_table($atts) {
         'category' => $category,
         'limit' => $limit,
         'rating_field' => $rating_field,
-        'button_text' => $button_text
+        'button_text' => $button_text,
+        'use_random_rating' => $use_random_rating
     )));
 
     // Try to get cached content
@@ -61,7 +64,7 @@ function top10_brokers_render_table($atts) {
     // If no cached content or cache disabled, generate the content
     if ($output === false) {
         // Fetch items based on the settings
-        $items = top10_brokers_get_items($post_type, $taxonomy, $category, $limit, $rating_field);
+        $items = top10_brokers_get_items($post_type, $taxonomy, $category, $limit, $rating_field, $use_random_rating);
         error_log('Items before sorting: ' . print_r($items, true));
         
         ob_start();
@@ -149,31 +152,41 @@ function top10_brokers_render_table($atts) {
     return $output;
 }
 
-function top10_brokers_get_items($post_type, $taxonomy, $term, $limit = 10, $rating_field = 'rating_meta_key') {
-    if (empty($term) || empty($taxonomy)) {
-        return array();
-    }
-
+function top10_brokers_get_items($post_type, $taxonomy, $term, $limit = 10, $rating_field = 'rating_meta_key', $use_random_rating = 'no') {
     $priority_brokers = array('iforex', 'capex', 'trade.com', 'infinox');
     $priority_items = array();
     $priority_post_ids = array(); // Keep track of priority broker post IDs
+
+    // Helper function to get rating
+    $get_rating = function($post_id, $rating_field) use ($use_random_rating) {
+        $rating = get_post_meta($post_id, $rating_field, true);
+        if (empty($rating) && $use_random_rating === 'yes') {
+            // Generate random rating between 4.3 and 4.9
+            $rating = number_format(mt_rand(43, 49) / 10, 1);
+        }
+        return $rating ? floatval($rating) : 0;
+    };
 
     // First query: Get priority brokers
     foreach ($priority_brokers as $broker) {
         $args = array(
             'post_type' => $post_type,
             'posts_per_page' => -1,
-            'tax_query' => array(
+            's' => $broker, // Search in title
+            'orderby' => 'title',
+            'order' => 'ASC',
+        );
+
+        // Only add taxonomy query if term is provided
+        if (!empty($term) && !empty($taxonomy)) {
+            $args['tax_query'] = array(
                 array(
                     'taxonomy' => $taxonomy,
                     'field'    => 'slug',
                     'terms'    => $term,
                 ),
-            ),
-            's' => $broker, // Search in title
-            'orderby' => 'title',
-            'order' => 'ASC',
-        );
+            );
+        }
 
         $query = new WP_Query($args);
         
@@ -185,7 +198,7 @@ function top10_brokers_get_items($post_type, $taxonomy, $term, $limit = 10, $rat
                 
                 // Only add if the broker name is found in the title (case insensitive)
                 if (stripos($title, $broker) !== false) {
-                    $rating = get_post_meta($post_id, $rating_field, true);
+                    $rating = $get_rating($post_id, $rating_field);
                     $options = get_option('top10_brokers_options');
                     $button_text = isset($options['top10_brokers_button_text']) ? $options['top10_brokers_button_text'] : __('Learn More', 'top10-brokers');
                     
@@ -197,7 +210,7 @@ function top10_brokers_get_items($post_type, $taxonomy, $term, $limit = 10, $rat
                     $priority_items[$broker] = array(
                         'name' => $title,
                         'image' => $image,
-                        'rating' => $rating ? floatval($rating) : 0,
+                        'rating' => $rating,
                         'link' => get_permalink(),
                         'button_text' => $button_text
                     );
@@ -225,13 +238,6 @@ function top10_brokers_get_items($post_type, $taxonomy, $term, $limit = 10, $rat
         $args = array(
             'post_type' => $post_type,
             'posts_per_page' => $remaining_slots,
-            'tax_query' => array(
-                array(
-                    'taxonomy' => $taxonomy,
-                    'field'    => 'slug',
-                    'terms'    => $term,
-                ),
-            ),
             'meta_query' => array(
                 array(
                     'key' => $rating_field,
@@ -245,6 +251,17 @@ function top10_brokers_get_items($post_type, $taxonomy, $term, $limit = 10, $rat
             'post__not_in' => $priority_post_ids, // Exclude priority brokers
         );
 
+        // Only add taxonomy query if term is provided
+        if (!empty($term) && !empty($taxonomy)) {
+            $args['tax_query'] = array(
+                array(
+                    'taxonomy' => $taxonomy,
+                    'field'    => 'slug',
+                    'terms'    => $term,
+                ),
+            );
+        }
+
         $query = new WP_Query($args);
         $remaining_items = array();
 
@@ -253,7 +270,7 @@ function top10_brokers_get_items($post_type, $taxonomy, $term, $limit = 10, $rat
                 $query->the_post();
                 $post_id = get_the_ID();
                 
-                $rating = get_post_meta($post_id, $rating_field, true);
+                $rating = $get_rating($post_id, $rating_field);
                 $options = get_option('top10_brokers_options');
                 $button_text = isset($options['top10_brokers_button_text']) ? $options['top10_brokers_button_text'] : __('Learn More', 'top10-brokers');
                 
@@ -265,7 +282,7 @@ function top10_brokers_get_items($post_type, $taxonomy, $term, $limit = 10, $rat
                 $remaining_items[] = array(
                     'name' => get_the_title(),
                     'image' => $image,
-                    'rating' => $rating ? floatval($rating) : 0,
+                    'rating' => $rating,
                     'link' => get_permalink(),
                     'button_text' => $button_text
                 );

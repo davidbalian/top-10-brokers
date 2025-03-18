@@ -149,6 +149,14 @@ function top10_brokers_settings_init() {
         'top10_brokers',
         'top10_brokers_section'
     );
+
+    add_settings_field(
+        'top10_brokers_use_random_rating',
+        __('Use Random Rating', 'top10-brokers'),
+        'top10_brokers_use_random_rating_render',
+        'top10_brokers',
+        'top10_brokers_section'
+    );
 }
 add_action('admin_init', 'top10_brokers_settings_init');
 
@@ -439,6 +447,18 @@ function top10_brokers_button_text_color_render() {
            name="top10_brokers_options[top10_brokers_button_text_color]" 
            value="<?php echo esc_attr($text_color); ?>" />
     <p class="description"><?php _e('Choose the text color for the Learn More button.', 'top10-brokers'); ?></p>
+    <?php
+}
+
+function top10_brokers_use_random_rating_render() {
+    $options = get_option('top10_brokers_options');
+    $use_random_rating = isset($options['top10_brokers_use_random_rating']) ? $options['top10_brokers_use_random_rating'] : 'no';
+    ?>
+    <label>
+        <input type="checkbox" name="top10_brokers_options[top10_brokers_use_random_rating]" value="yes" <?php checked($use_random_rating, 'yes'); ?>>
+        <?php _e('Can\'t find rating meta - Use random rating between 4.3 and 4.9', 'top10-brokers'); ?>
+    </label>
+    <p class="description"><?php _e('If checked, posts without a rating will be assigned a random rating between 4.3 and 4.9.', 'top10-brokers'); ?></p>
     <?php
 }
 
