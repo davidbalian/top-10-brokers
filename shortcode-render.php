@@ -238,18 +238,22 @@ function top10_brokers_get_items($post_type, $taxonomy, $term, $limit = 10, $rat
         $args = array(
             'post_type' => $post_type,
             'posts_per_page' => $remaining_slots,
-            'meta_query' => array(
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'post__not_in' => $priority_post_ids, // Exclude priority brokers
+        );
+
+        // Only add meta query for rating if random rating is not enabled
+        if ($use_random_rating !== 'yes') {
+            $args['meta_query'] = array(
                 array(
                     'key' => $rating_field,
                     'value' => '3.0',
                     'compare' => '>',
                     'type' => 'NUMERIC'
                 )
-            ),
-            'orderby' => 'date',
-            'order' => 'DESC',
-            'post__not_in' => $priority_post_ids, // Exclude priority brokers
-        );
+            );
+        }
 
         // Only add taxonomy query if term is provided
         if (!empty($term) && !empty($taxonomy)) {
