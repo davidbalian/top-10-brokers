@@ -1,0 +1,35 @@
+.top10-brokers-star-rating {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.star {
+  width: 24px;
+  height: 24px;
+  background: #e0e0e0;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>')
+    no-repeat center / contain;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>')
+    no-repeat center / contain;
+}
+
+.star.filled {
+  background: #ffd700;
+}
+
+.star.partial {
+  background: linear-gradient(
+    90deg,
+    #ffd700 var(--fill-percent),
+    #e0e0e0 var(--fill-percent)
+  );
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .star {
+    width: 20px;
+    height: 20px;
+  }
+}

@@ -1,0 +1,180 @@
+/* Top 10 Brokers Table Styles */
+.top10-brokers-container {
+  width: 100%;
+  margin: 2em 0;
+  overflow-x: auto;
+}
+
+.top10-brokers-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  table-layout: fixed;
+}
+
+.top10-brokers-table th,
+.top10-brokers-table td {
+  padding: 1em;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.top10-brokers-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.top10-brokers-rank-header,
+.top10-brokers-rank {
+  width: 15%;
+}
+
+.top10-brokers-broker-header,
+.top10-brokers-broker {
+  width: 37.5%;
+  padding: 1em;
+}
+
+.top10-brokers-rating-header,
+.top10-brokers-rating {
+  width: 22.5%;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.top10-brokers-review-header,
+.top10-brokers-review {
+  width: 25%;
+  text-align: center;
+}
+
+.top10-brokers-rank {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+}
+
+.top10-brokers-broker {
+  padding: 1em;
+}
+
+.broker-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.top10-brokers-broker img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.top10-brokers-broker img:hover {
+  transform: scale(1.05);
+}
+
+.top10-brokers-rating {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.star-rating {
+  position: relative;
+  color: #ddd;
+  font-size: 35px;
+  line-height: 1;
+  letter-spacing: 2px;
+}
+
+.star-rating::before {
+  content: "★★★★★";
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #f39c12;
+  width: var(--rating);
+  overflow: hidden;
+}
+
+.rating-value {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #333;
+}
+
+.top10-brokers-review {
+  text-align: center;
+}
+
+.learn-more-button {
+  display: inline-block;
+  padding: 0.8em 1.5em;
+  background: #2ecc71;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+  font-weight: 500;
+  font-size: 1em;
+}
+
+.learn-more-button:hover {
+  background: #27ae60;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Responsive Styles */
+@media screen and (max-width: 768px) {
+  .top10-brokers-table {
+    display: block;
+  }
+
+  .top10-brokers-table thead {
+    display: none;
+  }
+
+  .top10-brokers-table tr {
+    display: block;
+    margin-bottom: 1em;
+    border: 1px solid #eee;
+  }
+
+  .top10-brokers-table td {
+    display: block;
+    text-align: right;
+    padding: 0.5em;
+    border-bottom: 1px solid #eee;
+  }
+
+  .top10-brokers-table td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .top10-brokers-broker {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .top10-brokers-broker img {
+    max-width: 100%;
+    margin-bottom: 1em;
+  }
+
+  .learn-more-button {
+    display: block;
+    text-align: center;
+  }
+}
